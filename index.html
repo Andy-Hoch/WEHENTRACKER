@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wehen-Tracker</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 1.2rem;
+      font-size: 1.3rem;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button.start {
+      background-color: #2ecc71;
+    }
+
+    button.stop {
+      background-color: #e74c3c;
+    }
+
+    .reset {
+      margin-top: 1rem;
+      background-color: #bdc3c7;
+      color: #2c3e50;
+      font-size: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1.5rem;
+    }
+
+    li {
+      background: #f2f2f2;
+      padding: 0.8rem;
+      margin-bottom: 0.6rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .meta {
+      color: #555;
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Wehen-Tracker</h1>
+
+  <button id="contractionButton" class="start">
+    Wehe startet
+  </button>
+
+  <button id="resetButton" class="reset">
+    Alle Daten löschen
+  </button>
+
+  <ul id="contractionList"></ul>
+</main>
+
+<script>
+  const button = document.getElementById("contractionButton");
+  const resetButton = document.getElementById("resetButton");
+  const list = document.getElementById("contractionList");
+
+  let currentStartTime = null;
+  let isRunning = false;
+
+  const STORAGE_KEY = "wehen";
+
+  function loadContractions() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  }
+
+  function saveContractions(contractions) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(contractions));
+  }
+
+  function formatDuration(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  function renderList() {
+    const contractions = loadContractions();
+    list.innerHTML = "";
+
+    contractions.forEach((c, index) => {
+      const li = document.createElement("li");
+
+      li.innerHTML = `
+        <strong>Wehe #${index + 1}</strong><br>
+        Dauer: ${formatDuration(c.durationSeconds)}
+        <div class="meta">
+          Abstand zur vorherigen Wehe:
+          ${c.sinceLastSeconds === null ? "–" : formatDuration(c.sinceLastSeconds)}
+        </div>
+      `;
+
+      list.appendChild(li);
+    });
+  }
+
+  button.addEventListener("click", () => {
+    if (!isRunning) {
+      // Start der Wehe
+      currentStartTime = Date.now();
+      isRunning = true;
+
+      button.textContent = "Wehe endet";
+      button.classList.remove("start");
+      button.classList.add("stop");
+    } else {
+      // Ende der Wehe
+      const endTime = Date.now();
+      const durationSeconds = Math.round((endTime - currentStartTime) / 1000);
+
+      const contractions = loadContractions();
+      const last = contractions[contractions.length - 1];
+
+      let sinceLastSeconds = null;
+      if (last) {
+        sinceLastSeconds = Math.round((currentStartTime - last.start) / 1000);
+      }
+
+      contractions.push({
+        start: currentStartTime,
+        end: endTime,
+        durationSeconds,
+        sinceLastSeconds
+      });
+
+      saveContractions(contractions);
+      renderList();
+
+      // Reset Button Zustand
+      isRunning = false;
+      currentStartTime = null;
+
+      button.textContent = "Wehe startet";
+      button.classList.remove("stop");
+      button.classList.add("start");
+    }
+  });
+
+  resetButton.addEventListener("click", () => {
+    const confirmReset = confirm("Möchtest du wirklich alle Daten löschen?");
+    if (confirmReset) {
+      localStorage.removeItem(STORAGE_KEY);
+      renderList();
+    }
+  });
+
+  // Initial laden
+  renderList();
+</script>
+</body>
+</html>

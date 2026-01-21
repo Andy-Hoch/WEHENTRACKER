@@ -131,7 +131,7 @@
           Abstand zur vorherigen Wehe (Start bis Start):
           ${c.sinceLastSeconds === null ? "–" : formatDuration(c.sinceLastSeconds)}</br>
           Pause nach der vorigen Wehe:
-          ${c.lastSeconds === null || c.sinceLastSeconds == null ? "-" : formatDuration(c.sinceLastSeconds - c.lastSeconds)}
+          ${c.lastSeconds === null && c.sinceLastSeconds == null ? "-" : formatDuration(c.sinceLastSeconds - c.lastSeconds)}
         </div>
       `;
 

@@ -138,6 +138,7 @@
   }
 
   button.addEventListener("click", () => {
+    document.getElementsByTagName("h1")[0] ? document.getElementsByTagName("h1")[0].remove() : console.log("no header");
     if (!isRunning) {
       // Start der Wehe
       currentStartTime = Date.now();

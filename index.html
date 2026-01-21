@@ -129,7 +129,9 @@
         Dauer: ${formatDuration(c.durationSeconds)}
         <div class="meta">
           Abstand zur vorherigen Wehe:
-          ${c.sinceLastSeconds === null ? "–" : formatDuration(c.sinceLastSeconds)}
+          ${c.sinceLastSeconds === null ? "–" : formatDuration(c.sinceLastSeconds)}</br>
+          Pause zwischen nach der vorigen Wehe:
+          ${c.lastSeconds === null || c.sinceLastSeconds == null ? "-" : formatDuration(c.sinceLastSeconds - c.lastSeconds)}
         </div>
       `;
 
@@ -157,13 +159,15 @@
       let sinceLastSeconds = null;
       if (last) {
         sinceLastSeconds = Math.round((currentStartTime - last.start) / 1000);
+        lastSeconds = last.durationSeconds;
       }
 
       contractions.push({
         start: currentStartTime,
         end: endTime,
         durationSeconds,
-        sinceLastSeconds
+        sinceLastSeconds,
+        lastSeconds
       });
 
       saveContractions(contractions);

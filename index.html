@@ -156,6 +156,7 @@
       const last = contractions[contractions.length - 1];
 
       let sinceLastSeconds = null;
+      let lastSeconds = null;
       if (last) {
         sinceLastSeconds = Math.round((currentStartTime - last.start) / 1000);
         lastSeconds = last.durationSeconds;
